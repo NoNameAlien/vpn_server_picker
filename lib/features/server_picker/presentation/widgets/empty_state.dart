@@ -5,20 +5,18 @@ class EmptyState extends StatelessWidget {
   final String title;
   final String subtitle;
   final bool centered;
-  final double topPadding;
 
   const EmptyState({
     super.key,
     required this.title,
     required this.subtitle,
     this.centered = true,
-    this.topPadding = 0,
   });
 
   @override
   Widget build(BuildContext context) {
     final content = Padding(
-      padding: EdgeInsets.only(left: 24, right: 24, top: topPadding),
+      padding: EdgeInsets.only(left: 24, right: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: centered

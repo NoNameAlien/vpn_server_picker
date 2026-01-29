@@ -41,10 +41,14 @@ class _View extends StatelessWidget {
               _SearchField(),
               const SizedBox(height: 31),
               BlocBuilder<ServerPickerBloc, ServerPickerState>(
-                buildWhen: (p, n) => p.tab != n.tab,
-                builder: (_, state) => state.tab == ServerTab.all
-                    ? const _MyAccessPointsLabel()
-                    : const SizedBox.shrink(),
+                buildWhen: (p, n) => p.tab != n.tab || p.query != n.query,
+                builder: (_, state) {
+                  if (state.tab != ServerTab.all ||
+                      state.query.trim().isNotEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return const _MyAccessPointsLabel();
+                },
               ),
               const SizedBox(height: 8),
               BlocBuilder<ServerPickerBloc, ServerPickerState>(
@@ -83,7 +87,6 @@ class _View extends StatelessWidget {
                     if (items.isEmpty) {
                       return const EmptyState(
                         centered: false,
-                        topPadding: 48,
                         title: 'Нет результатов',
                         subtitle:
                             'По вашему запросу серверов\nне найдено. Попробуйте изменить\nзапрос или проверьте написание.',
