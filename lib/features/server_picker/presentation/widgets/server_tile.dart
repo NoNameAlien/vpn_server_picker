@@ -26,6 +26,7 @@ class ServerTile extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
+        height: 68,
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
@@ -33,14 +34,14 @@ class ServerTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppDimens.r16),
           border: Border.all(
             color: selected
-                ? AppColors.primary.withValues(alpha: 0.9)
-                : AppColors.stroke.withValues(alpha: 0.35),
+                ? AppColors.primary2.withValues(alpha: 0.9)
+                : AppColors.textSecondary.withValues(alpha: 0.2),
             width: selected ? 1.5 : 1,
           ),
           boxShadow: selected
               ? [
                   BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.0),
+                    color: AppColors.primary2.withValues(alpha: 0.0),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -89,10 +90,8 @@ class ServerTile extends StatelessWidget {
               onTap: onFavorite,
               behavior: HitTestBehavior.opaque,
               child: Icon(
-                item.isFavorite
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                size: 20,
+                Icons.favorite_rounded,
+                size: 22,
                 color: item.isFavorite
                     ? AppColors.heartActive
                     : AppColors.heartInactive,
@@ -113,9 +112,12 @@ class _FlagCircle extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipOval(
       child: SizedBox(
-        width: 36,
-        height: 36,
-        child: CountryFlag.fromCountryCode(code),
+        width: 32,
+        height: 32,
+        child: FittedBox(
+          fit: BoxFit.cover,
+          child: CountryFlag.fromCountryCode(code),
+        ),
       ),
     );
   }

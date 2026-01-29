@@ -28,7 +28,7 @@ class EmptyState extends StatelessWidget {
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontSize: 18,
+              fontSize: 20,
               fontWeight: FontWeight.w700,
             ),
             textAlign: TextAlign.center,

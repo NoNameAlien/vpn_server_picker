@@ -8,6 +8,7 @@ class AppColors {
   static const panel = Color(0xFF2B3E58);
 
   static const primary = Color(0xFF1F66FF);
+  static const primary2 = Color.fromARGB(255, 0, 170, 255);
 
   static const textPrimary = Color(0xFFF2F5F8);
   static const textSecondary = Color(0xFF8FA3B8);

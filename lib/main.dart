@@ -34,13 +34,8 @@ class AppTheme {
       ),
       textTheme: const TextTheme(
         headlineSmall: TextStyle(
-          fontSize: 28,
+          fontSize: 32,
           fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w600,
           color: AppColors.textPrimary,
         ),
         bodyMedium: TextStyle(fontSize: 14, color: AppColors.textPrimary),

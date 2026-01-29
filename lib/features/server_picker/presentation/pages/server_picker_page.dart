@@ -35,20 +35,28 @@ class _View extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _TopBar(),
-              const SizedBox(height: AppDimens.h16),
+              const SizedBox(height: 10),
               _Tabs(),
-              const SizedBox(height: AppDimens.h12),
+              const SizedBox(height: 18),
               _SearchField(),
-              const SizedBox(height: 12),
+              const SizedBox(height: 31),
               BlocBuilder<ServerPickerBloc, ServerPickerState>(
                 buildWhen: (p, n) => p.tab != n.tab,
                 builder: (_, state) => state.tab == ServerTab.all
                     ? const _MyAccessPointsLabel()
                     : const SizedBox.shrink(),
               ),
-              const SizedBox(height: 10),
-              _AddKeyButton(),
-              const SizedBox(height: AppDimens.h16),
+              const SizedBox(height: 8),
+              BlocBuilder<ServerPickerBloc, ServerPickerState>(
+                buildWhen: (p, n) => p.query != n.query,
+                builder: (_, state) {
+                  if (state.query.trim().isNotEmpty) {
+                    return const SizedBox.shrink();
+                  }
+                  return _AddKeyButton();
+                },
+              ),
+              const SizedBox(height: 8),
 
               Expanded(
                 child: BlocBuilder<ServerPickerBloc, ServerPickerState>(
@@ -59,6 +67,18 @@ class _View extends StatelessWidget {
                       p.selectedServerId != n.selectedServerId,
                   builder: (context, state) {
                     final items = state.filtered;
+
+                    final pinned =
+                        (state.tab == ServerTab.all &&
+                            state.query.trim().isEmpty)
+                        ? items.where((s) => s.isMine).take(1).toList()
+                        : const <ServerItem>[];
+
+                    final rest = pinned.isEmpty
+                        ? items
+                        : items
+                              .where((s) => s.id != pinned.first.id)
+                              .toList(growable: false);
 
                     if (items.isEmpty) {
                       return const EmptyState(
@@ -72,7 +92,7 @@ class _View extends StatelessWidget {
 
                     final order = <String>[];
                     final map = <String, List<ServerItem>>{};
-                    for (final s in items) {
+                    for (final s in rest) {
                       map
                           .putIfAbsent(s.country, () {
                             order.add(s.country);
@@ -84,11 +104,24 @@ class _View extends StatelessWidget {
                     return ListView(
                       padding: EdgeInsets.zero,
                       children: [
-                        for (final country in order) ...[
-                          SectionTitle(country),
-                          ...map[country]!.map(
+                        if (pinned.isNotEmpty) ...[
+                          ServerTile(
+                            item: pinned.first,
+                            selected: pinned.first.id == state.selectedServerId,
+                            onTap: () => context.read<ServerPickerBloc>().add(
+                              ServerSelected(pinned.first.id),
+                            ),
+                            onFavorite: () => context
+                                .read<ServerPickerBloc>()
+                                .add(ServerFavoriteToggled(pinned.first.id)),
+                            trailingText: null,
+                          ),
+                          const SizedBox(height: 12),
+                        ],
+                        if (state.tab == ServerTab.mine)
+                          ...items.map(
                             (s) => Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.only(bottom: 8),
                               child: ServerTile(
                                 item: s,
                                 selected: s.id == state.selectedServerId,
@@ -98,15 +131,35 @@ class _View extends StatelessWidget {
                                 onFavorite: () => context
                                     .read<ServerPickerBloc>()
                                     .add(ServerFavoriteToggled(s.id)),
-                                trailingText:
-                                    (state.tab == ServerTab.mine && s.isMine)
-                                    ? 'Удалить'
-                                    : null,
+                                trailingText: s.isMine ? 'Удалить' : null,
                               ),
                             ),
-                          ),
+                          )
+                        else ...[
+                          for (final country in order) ...[
+                            SectionTitle(country),
+                            ...map[country]!.map(
+                              (s) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: ServerTile(
+                                  item: s,
+                                  selected: s.id == state.selectedServerId,
+                                  onTap: () => context
+                                      .read<ServerPickerBloc>()
+                                      .add(ServerSelected(s.id)),
+                                  onFavorite: () => context
+                                      .read<ServerPickerBloc>()
+                                      .add(ServerFavoriteToggled(s.id)),
+                                  trailingText:
+                                      (state.tab == ServerTab.mine && s.isMine)
+                                      ? 'Удалить'
+                                      : null,
+                                ),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 8),
                         ],
-                        const SizedBox(height: 8),
                       ],
                     );
                   },
@@ -149,8 +202,8 @@ class _Tabs extends StatelessWidget {
       buildWhen: (p, n) => p.tab != n.tab,
       builder: (context, state) {
         return Container(
-          height: 44,
-          padding: const EdgeInsets.all(4),
+          height: 40,
+          padding: const EdgeInsets.all(3),
           decoration: BoxDecoration(
             color: AppColors.panel,
             borderRadius: BorderRadius.circular(AppDimens.r20),
@@ -204,6 +257,7 @@ class _TabButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         onTap: onTap,
         child: AnimatedContainer(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           duration: const Duration(milliseconds: 180),
           alignment: Alignment.center,
           decoration: BoxDecoration(
@@ -212,10 +266,10 @@ class _TabButton extends StatelessWidget {
           ),
           child: Text(
             label,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
               fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: selected ? Colors.white : AppColors.textSecondary,
+              fontWeight: FontWeight.w400,
+              color: Colors.white,
             ),
           ),
         ),
@@ -252,7 +306,7 @@ class _SearchFieldState extends State<_SearchField> {
         if (state.query.isEmpty && _c.text.isNotEmpty) _c.clear();
       },
       child: Container(
-        height: 56,
+        height: 55,
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
           color: AppColors.panel,
@@ -263,7 +317,7 @@ class _SearchFieldState extends State<_SearchField> {
           children: [
             const Icon(
               Icons.search_rounded,
-              size: 20,
+              size: 22,
               color: AppColors.textSecondary,
             ),
             const SizedBox(width: 8),
@@ -273,10 +327,17 @@ class _SearchFieldState extends State<_SearchField> {
                 onChanged: (v) => context.read<ServerPickerBloc>().add(
                   ServerSearchChanged(v),
                 ),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w500,
+                  color: AppColors.textPrimary,
+                ),
                 textAlignVertical: TextAlignVertical.center,
                 decoration: InputDecoration(
                   hintText: 'Поиск',
                   hintStyle: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
                     color: AppColors.textSecondary,
                   ),
                   border: InputBorder.none,
@@ -299,9 +360,9 @@ class _MyAccessPointsLabel extends StatelessWidget {
     return Text(
       'Мои точки доступа',
       style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-        color: AppColors.textSecondary,
         fontSize: 12,
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w400,
+        color: AppColors.textSecondary,
       ),
     );
   }
@@ -311,7 +372,7 @@ class _AddKeyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 56,
+      height: 65,
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {},
@@ -324,7 +385,7 @@ class _AddKeyButton extends StatelessWidget {
         ),
         child: const Text(
           'Добавить ключ',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
       ),
     );
