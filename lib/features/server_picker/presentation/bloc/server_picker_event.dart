@@ -36,3 +36,7 @@ class ServerSelected extends ServerPickerEvent {
   @override
   List<Object?> get props => [serverId];
 }
+
+class ServerPickerStarted extends ServerPickerEvent {
+  const ServerPickerStarted();
+}

@@ -1,35 +1,7 @@
-class ServerItem {
-  final String id;
-  final String name;
-  final String country;
-  final int latencyMs;
-  final bool isMine;
-  final bool isFavorite;
-  final String countryCode;
+import 'package:vpn_server_picker/features/server_picker/domain/entities/server.dart';
 
-  const ServerItem({
-    required this.id,
-    required this.name,
-    required this.country,
-    required this.latencyMs,
-    required this.isMine,
-    required this.isFavorite,
-    required this.countryCode,
-  });
-
-  ServerItem copyWith({bool? isFavorite}) => ServerItem(
-    id: id,
-    name: name,
-    country: country,
-    latencyMs: latencyMs,
-    isMine: isMine,
-    isFavorite: isFavorite ?? this.isFavorite,
-    countryCode: countryCode,
-  );
-}
-
-const mockServers = <ServerItem>[
-  ServerItem(
+const mockServers = <Server>[
+  Server(
     id: 'de-berlin-1',
     name: 'Берлин',
     country: 'Германия',
@@ -38,7 +10,7 @@ const mockServers = <ServerItem>[
     isFavorite: false,
     countryCode: 'DE',
   ),
-  ServerItem(
+  Server(
     id: 'de-berlin-2',
     name: 'Берлин',
     country: 'Германия',
@@ -47,7 +19,7 @@ const mockServers = <ServerItem>[
     isFavorite: false,
     countryCode: 'DE',
   ),
-  ServerItem(
+  Server(
     id: 'de-berlin-3',
     name: 'Берлин',
     country: 'Германия',
@@ -56,7 +28,7 @@ const mockServers = <ServerItem>[
     isFavorite: true,
     countryCode: 'DE',
   ),
-  ServerItem(
+  Server(
     id: 'us-ny-1',
     name: 'Нью-Йорк',
     country: 'США',

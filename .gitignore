@@ -45,3 +45,6 @@ app.*.map.json
 /android/app/release
 
 .vscode/
+
+# Local project planning notes
+project_notes/

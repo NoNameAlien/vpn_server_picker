@@ -1,45 +1,63 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:vpn_server_picker/core/theme/app_colors.dart';
-import 'features/server_picker/presentation/pages/server_picker_page.dart';
+import 'package:vpn_server_picker/core/app/app.dart';
+import 'package:vpn_server_picker/core/storage/shared_preferences_local_storage.dart';
+import 'package:vpn_server_picker/features/auth/data/repositories/firebase_auth_repository.dart';
+import 'package:vpn_server_picker/features/auth/data/repositories/firebase_user_profile_repository.dart';
+import 'package:vpn_server_picker/features/devices/data/repositories/firebase_device_repository.dart';
+import 'package:vpn_server_picker/features/devices/data/services/device_identity_service.dart';
+import 'package:vpn_server_picker/features/server_picker/data/datasources/firebase_server_remote_data_source.dart';
+import 'package:vpn_server_picker/features/server_picker/data/repositories/firebase_server_repository.dart';
+import 'package:vpn_server_picker/firebase_options.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  final authRepository = FirebaseAuthRepository(FirebaseAuth.instance);
+  final firestore = FirebaseFirestore.instance;
 
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'VPN Server Picker',
-      debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark(),
-      home: const ServerPickerPage(),
-    );
-  }
-}
+  // Firestore rules require an authenticated user, including anonymous users.
+  final authResult = await authRepository.ensureSignedIn();
+  await authResult.when<Future<void>>(
+    success: (profile) async {
+      final profileRepository = FirebaseUserProfileRepository(firestore);
+      final deviceRepository = FirebaseDeviceRepository(firestore);
+      final localStorage = await SharedPreferencesLocalStorage.create();
+      final deviceIdentityService = DeviceIdentityService(localStorage);
 
-class AppTheme {
-  static ThemeData dark() {
-    return ThemeData(
-      useMaterial3: true,
-      brightness: Brightness.dark,
-      scaffoldBackgroundColor: AppColors.bg,
-      colorScheme: const ColorScheme.dark(
-        primary: AppColors.primary,
-        surface: AppColors.surface,
-        onSurface: AppColors.textPrimary,
-        onPrimary: Colors.white,
+      final profileResult = await profileRepository.upsert(profile);
+      await profileResult.when<Future<void>>(
+        success: (_) async {
+          final device = await deviceIdentityService.getCurrentDevice(
+            userId: profile.id,
+          );
+          final deviceResult = await deviceRepository.register(device);
+          deviceResult.when(
+            success: (_) {},
+            failure: (failure) {
+              debugPrint('Device registration failed: ${failure.message}');
+            },
+          );
+        },
+        failure: (failure) async {
+          debugPrint('Profile synchronization failed: ${failure.message}');
+        },
+      );
+    },
+    failure: (failure) async {
+      debugPrint('Firebase authentication failed: ${failure.message}');
+    },
+  );
+
+  runApp(
+    App(
+      authRepository: authRepository,
+      serverRepository: FirebaseServerRepository(
+        FirebaseServerRemoteDataSource(firestore),
       ),
-      textTheme: const TextTheme(
-        headlineSmall: TextStyle(
-          fontSize: 32,
-          fontWeight: FontWeight.w700,
-          color: AppColors.textPrimary,
-        ),
-        bodyMedium: TextStyle(fontSize: 14, color: AppColors.textPrimary),
-      ),
-    );
-  }
+    ),
+  );
 }

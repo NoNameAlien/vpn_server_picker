@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "283979715570",
+    "project_id": "vpn-server-picker",
+    "storage_bucket": "vpn-server-picker.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:283979715570:android:c31166789416bdab63d16b",
+        "android_client_info": {
+          "package_name": "com.example.vpn_server_picker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuQc8c7_O5jGqYvQyfb8uvM1vYg39h6EE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

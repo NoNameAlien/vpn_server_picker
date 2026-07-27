@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:vpn_server_picker/core/theme/app_colors.dart';
 import 'package:vpn_server_picker/core/theme/app_dimens.dart';
-import 'package:vpn_server_picker/features/server_picker/data/mock_servers.dart';
 import 'package:country_flags/country_flags.dart';
+import 'package:vpn_server_picker/features/server_picker/domain/entities/server.dart';
 
 class ServerTile extends StatelessWidget {
-  final ServerItem item;
+  final Server item;
   final bool selected;
   final VoidCallback onTap;
   final VoidCallback onFavorite;
@@ -65,7 +65,7 @@ class ServerTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    '${item.latencyMs} мс',
+                    item.latencyMs >= 0 ? '${item.latencyMs} мс' : 'Проверка...',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: AppColors.textSecondary,
                       fontSize: 12,

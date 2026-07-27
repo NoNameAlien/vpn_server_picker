@@ -1,0 +1,29 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "vpn-server-picker",
+          "appId": "1:283979715570:android:c31166789416bdab63d16b",
+          "fileOutput": "android/app/google-services.json"
+        }
+      }
+    },
+    "dart": {
+      "lib/firebase_options.dart": {
+        "projectId": "vpn-server-picker",
+        "configurations": {
+          "android": "1:283979715570:android:c31166789416bdab63d16b",
+          "ios": "1:283979715570:ios:e6f7f57f70ac0e1b63d16b",
+          "macos": "1:283979715570:ios:e6f7f57f70ac0e1b63d16b",
+          "web": "1:283979715570:web:47d19883b20c05e363d16b",
+          "windows": "1:283979715570:web:2cc45b76d94db09563d16b"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  }
+}

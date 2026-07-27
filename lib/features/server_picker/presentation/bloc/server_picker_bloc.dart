@@ -1,9 +1,15 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:vpn_server_picker/features/server_picker/domain/repositories/server_repository.dart';
 import 'server_picker_event.dart';
 import 'server_picker_state.dart';
 
 class ServerPickerBloc extends Bloc<ServerPickerEvent, ServerPickerState> {
-  ServerPickerBloc() : super(ServerPickerState.initial()) {
+  final ServerRepository _serverRepository;
+
+  ServerPickerBloc({required ServerRepository serverRepository})
+    : _serverRepository = serverRepository,
+      super(ServerPickerState.initial()) {
+    on<ServerPickerStarted>(_onStarted);
     on<ServerTabChanged>((e, emit) {
       emit(state.copyWith(tab: e.tab, query: ''));
     });
@@ -11,6 +17,33 @@ class ServerPickerBloc extends Bloc<ServerPickerEvent, ServerPickerState> {
     on<ServerFavoriteToggled>(_onFavoriteToggled);
     on<ServerSelected>(
       (e, emit) => emit(state.copyWith(selectedServerId: e.serverId)),
+    );
+
+    add(const ServerPickerStarted());
+  }
+
+  Future<void> _onStarted(
+    ServerPickerStarted event,
+    Emitter<ServerPickerState> emit,
+  ) async {
+    emit(state.copyWith(isLoading: true, clearFailure: true));
+
+    final result = await _serverRepository.getServers();
+
+    result.when(
+      success: (servers) {
+        emit(
+          state.copyWith(
+            servers: servers,
+            selectedServerId: servers.isNotEmpty ? servers.first.id : '',
+            isLoading: false,
+            clearFailure: true,
+          ),
+        );
+      },
+      failure: (failure) {
+        emit(state.copyWith(isLoading: false, failure: failure));
+      },
     );
   }
 

@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:vpn_server_picker/core/theme/app_colors.dart';
 import 'package:vpn_server_picker/core/theme/app_dimens.dart';
-import 'package:vpn_server_picker/features/server_picker/data/mock_servers.dart';
+import 'package:vpn_server_picker/features/server_picker/domain/entities/server.dart';
+import 'package:vpn_server_picker/features/server_picker/domain/repositories/server_repository.dart';
 import 'package:vpn_server_picker/features/server_picker/presentation/bloc/server_picker_bloc.dart';
 import 'package:vpn_server_picker/features/server_picker/presentation/bloc/server_picker_event.dart';
 import 'package:vpn_server_picker/features/server_picker/presentation/bloc/server_picker_state.dart';
@@ -16,7 +17,9 @@ class ServerPickerPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (_) => ServerPickerBloc(),
+      create: (context) => ServerPickerBloc(
+        serverRepository: context.read<ServerRepository>(),
+      ),
       child: const _View(),
     );
   }
@@ -68,15 +71,30 @@ class _View extends StatelessWidget {
                       p.tab != n.tab ||
                       p.query != n.query ||
                       p.servers != n.servers ||
-                      p.selectedServerId != n.selectedServerId,
+                      p.selectedServerId != n.selectedServerId ||
+                      p.isLoading != n.isLoading ||
+                      p.failure != n.failure,
                   builder: (context, state) {
+                    if (state.isLoading) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+
+                    if (state.failure != null) {
+                      return _LoadFailure(
+                        message: state.failure!.message,
+                        onRetry: () => context.read<ServerPickerBloc>().add(
+                          const ServerPickerStarted(),
+                        ),
+                      );
+                    }
+
                     final items = state.filtered;
 
                     final pinned =
                         (state.tab == ServerTab.all &&
                             state.query.trim().isEmpty)
                         ? items.where((s) => s.isMine).take(1).toList()
-                        : const <ServerItem>[];
+                        : const <Server>[];
 
                     final rest = pinned.isEmpty
                         ? items
@@ -94,12 +112,12 @@ class _View extends StatelessWidget {
                     }
 
                     final order = <String>[];
-                    final map = <String, List<ServerItem>>{};
+                    final map = <String, List<Server>>{};
                     for (final s in rest) {
                       map
                           .putIfAbsent(s.country, () {
                             order.add(s.country);
-                            return <ServerItem>[];
+                            return <Server>[];
                           })
                           .add(s);
                     }
@@ -171,6 +189,31 @@ class _View extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _LoadFailure extends StatelessWidget {
+  const _LoadFailure({required this.message, required this.onRetry});
+
+  final String message;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(message, textAlign: TextAlign.center),
+          const SizedBox(height: 8),
+          IconButton(
+            tooltip: 'Повторить загрузку',
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh_rounded),
+          ),
+        ],
       ),
     );
   }

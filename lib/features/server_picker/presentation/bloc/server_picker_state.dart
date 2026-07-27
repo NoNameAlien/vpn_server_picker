@@ -1,45 +1,57 @@
 import 'package:equatable/equatable.dart';
-import 'package:vpn_server_picker/features/server_picker/data/mock_servers.dart';
+import 'package:vpn_server_picker/core/error/failure.dart';
+import 'package:vpn_server_picker/features/server_picker/domain/entities/server.dart';
 import 'server_picker_event.dart';
 
 class ServerPickerState extends Equatable {
   final ServerTab tab;
   final String query;
-  final List<ServerItem> servers;
+  final List<Server> servers;
   final String selectedServerId;
+  final bool isLoading;
+  final Failure? failure;
 
   const ServerPickerState({
     required this.tab,
     required this.query,
     required this.servers,
     required this.selectedServerId,
+    required this.isLoading,
+    required this.failure,
   });
 
   factory ServerPickerState.initial() => const ServerPickerState(
     tab: ServerTab.all,
     query: '',
-    servers: mockServers,
-    selectedServerId: 'de-berlin-1',
+    servers: <Server>[],
+    selectedServerId: '',
+    isLoading: false,
+    failure: null,
   );
 
   ServerPickerState copyWith({
     ServerTab? tab,
     String? query,
-    List<ServerItem>? servers,
+    List<Server>? servers,
     String? selectedServerId,
+    bool? isLoading,
+    Failure? failure,
+    bool clearFailure = false,
   }) {
     return ServerPickerState(
       tab: tab ?? this.tab,
       query: query ?? this.query,
       servers: servers ?? this.servers,
       selectedServerId: selectedServerId ?? this.selectedServerId,
+      isLoading: isLoading ?? this.isLoading,
+      failure: clearFailure ? null : failure ?? this.failure,
     );
   }
 
-  List<ServerItem> get filtered {
+  List<Server> get filtered {
     final q = query.trim().toLowerCase();
 
-    Iterable<ServerItem> items = servers;
+    Iterable<Server> items = servers;
 
     switch (tab) {
       case ServerTab.all:
@@ -60,5 +72,12 @@ class ServerPickerState extends Equatable {
   }
 
   @override
-  List<Object?> get props => [tab, query, servers, selectedServerId];
+  List<Object?> get props => [
+    tab,
+    query,
+    servers,
+    selectedServerId,
+    isLoading,
+    failure,
+  ];
 }
